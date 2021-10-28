@@ -3,6 +3,7 @@ const { MongoClient } = require('mongodb');
 const app = express();
 require('dotenv').config();
 const cors = require('cors');
+const ObjectId = require('mongodb').ObjectId;
 const port = process.env.PORT || 5000
 
 //Midlleware
@@ -24,6 +25,7 @@ async function run() {
 
         const database = client.db('volunteerNetwork');
         const eventCollection = database.collection('events');
+        const userCollection = database.collection('users')
 
         //Add data to databse
         // const events = [
@@ -59,6 +61,22 @@ async function run() {
             const cursor = eventCollection.find({})
             const events = await cursor.toArray();
             res.send(events);
+        });
+
+        //POST API
+        app.post('/users', async (req, res) => {
+            const newUser = req.body;
+            const result = await userCollection.insertOne(newUser)
+            res.json(result)
+        });
+
+        //Send data beased on id
+        app.get('/events/:id', async(req, res)=>{
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)}
+            const event = await eventCollection.findOne(query);
+            console.log('hitting id: ', id)
+            res.send(event)
         })
 
     }
